@@ -36,9 +36,7 @@ export function useProjects() {
   }
 
   function updateProject(id: string, data: Partial<Omit<Project, 'id' | 'createdAt'>>) {
-    setProjects(prev =>
-      prev.map(p => (p.id === id ? { ...p, ...data } : p))
-    );
+    setProjects(prev => prev.map(p => (p.id === id ? { ...p, ...data } : p)));
   }
 
   function archiveProject(id: string) {
@@ -55,5 +53,9 @@ export function useProjects() {
     setProjects(prev => prev.filter(p => p.id !== id));
   }
 
-  return { projects, loaded, addProject, updateProject, archiveProject, deleteProject };
+  function getProject(id: string) {
+    return projects.find(p => p.id === id) ?? null;
+  }
+
+  return { projects, loaded, addProject, updateProject, archiveProject, deleteProject, getProject };
 }

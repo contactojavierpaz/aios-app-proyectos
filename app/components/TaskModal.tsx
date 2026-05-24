@@ -69,7 +69,7 @@ export function TaskModal({ task, projectId, onSave, onClose }: Props) {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Título</label>
             <input
-              className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               placeholder="¿Qué hay que hacer?"
               value={title}
               onChange={e => setTitle(e.target.value)}
@@ -82,7 +82,7 @@ export function TaskModal({ task, projectId, onSave, onClose }: Props) {
               Descripción <span className="text-gray-400 font-normal">(opcional)</span>
             </label>
             <textarea
-              className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+              className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
               placeholder="Contexto, pasos, notas..."
               rows={2}
               value={description}
@@ -96,7 +96,7 @@ export function TaskModal({ task, projectId, onSave, onClose }: Props) {
             </label>
             <input
               type="datetime-local"
-              className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               value={dueDate}
               onChange={e => setDueDate(e.target.value)}
             />

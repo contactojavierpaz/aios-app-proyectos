@@ -36,8 +36,8 @@ export default function ProjectPage({
 }) {
   const { id } = use(params);
   const router = useRouter();
-  const { projects, loaded: pLoaded, updateProject } = useProjects();
-  const { tasks, loaded: tLoaded, addTask, updateTask, deleteTask } = useTasks(id);
+  const { projects, loaded: pLoaded, error: pError, updateProject } = useProjects();
+  const { tasks, loaded: tLoaded, error: tError, addTask, updateTask, deleteTask } = useTasks(id);
   const [taskModalOpen, setTaskModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [projectModalOpen, setProjectModalOpen] = useState(false);
@@ -80,8 +80,11 @@ export default function ProjectPage({
 
   if (!pLoaded || !tLoaded) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 gap-3">
         <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+        {(pError || tError) && (
+          <p className="text-sm text-red-500">{pError ?? tError}</p>
+        )}
       </div>
     );
   }

@@ -66,6 +66,32 @@
 
 ---
 
-## Sin login / sin sincronización multi-dispositivo
+## Sin login / sin sincronización multi-dispositivo (reemplazado — ver debajo)
 
-**Razón:** Usuario único confirmado. Auth en esta etapa es overhead puro.
+---
+
+## Migración a Supabase (2026-05-23)
+
+**Decisión:** Reemplazar localStorage por Supabase con tiempo real.
+
+**Stack de persistencia:** `@supabase/supabase-js` v2 + Postgres en Supabase cloud. Sin auth (RLS abierta con `USING (true)`). Política pública explícita en lugar de deshabilitar RLS por completo, siguiendo las recomendaciones de Supabase.
+
+**Modelo de datos en DB:**
+- `projects` — id (text PK), name, status, description, created_at (timestamptz), archived_at (timestamptz nullable)
+- `tasks` — id (text PK), project_id (FK → projects ON DELETE CASCADE), title, description, due_date (date), due_time (text "HH:MM"), status, created_at (timestamptz), notified_30min (boolean), notified_overdue (boolean)
+
+**Por qué due_date + due_time separados:** Permite consultar tareas por fecha sin parsear ISO strings. Se almacena en hora local del usuario (no UTC) para que el ORDER BY date sea intuitivo.
+
+**Mapeo app ↔ DB:** La app sigue usando `dueDate: string` como datetime local sin zona (`"2026-05-23T14:30"`). `splitDueDateTime()` y `combineDueDateTime()` en `useTasks.ts` manejan la conversión. `new Date("2026-05-23T14:30")` en JS es interpretado como hora local, por lo que las comparaciones de urgencia funcionan correctamente.
+
+**Tiempo real:** Suscripciones `postgres_changes` en `useProjects` y `useTasks`. En cada evento refetch completo (no diff incremental) — aceptable para el volumen de datos de un usuario único.
+
+**Optimistic updates:** Mutaciones actualizan el estado local inmediatamente antes de confirmar con Supabase. En caso de error del servidor, revierte con un refetch completo.
+
+**Notificaciones:** `ClientInit.tsx` migrado a leer/escribir `notified_30min` / `notified_overdue` directamente en Supabase en lugar de localStorage. El polling de 60s persiste (sin cambios en la frecuencia).
+
+**Variables de entorno necesarias:**
+- `NEXT_PUBLIC_SUPABASE_URL` — URL del proyecto Supabase
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` — clave pública (anon)
+
+**Setup requerido (una vez):** Ejecutar `supabase/setup.sql` en el SQL Editor de Supabase Dashboard.

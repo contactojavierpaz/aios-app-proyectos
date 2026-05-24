@@ -10,8 +10,8 @@ const STATUS_ORDER: ProjectStatus[] = ['bloqueado', 'activo', 'completado', 'arc
 type FilterType = 'activos' | 'archivados';
 
 export default function Dashboard() {
-  const { projects, loaded: projectsLoaded, addProject, updateProject, archiveProject, deleteProject } = useProjects();
-  const { allTasks, loaded: tasksLoaded, deleteTasksByProject } = useTasks();
+  const { projects, loaded: projectsLoaded, error: projectsError, addProject, updateProject, archiveProject, deleteProject } = useProjects();
+  const { allTasks, loaded: tasksLoaded, error: tasksError, deleteTasksByProject } = useTasks();
   const [modalOpen, setModalOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [filter, setFilter] = useState<FilterType>('activos');
@@ -72,8 +72,11 @@ export default function Dashboard() {
 
   if (!projectsLoaded || !tasksLoaded) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 gap-3">
         <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+        {(projectsError || tasksError) && (
+          <p className="text-sm text-red-500">{projectsError ?? tasksError}</p>
+        )}
       </div>
     );
   }

@@ -1,6 +1,6 @@
 'use client';
 import { useEffect } from 'react';
-import { Task } from '../types';
+import { supabase } from '../lib/supabase';
 
 export function ClientInit() {
   useEffect(() => {
@@ -13,41 +13,31 @@ export function ClientInit() {
   }, []);
 
   useEffect(() => {
-    function checkNotifications() {
+    async function checkNotifications() {
       if (!('Notification' in window) || Notification.permission !== 'granted') return;
-      try {
-        const raw = localStorage.getItem('aios-tareas');
-        if (!raw) return;
-        const tasks: Task[] = JSON.parse(raw);
-        let changed = false;
 
-        const updated = tasks.map(task => {
-          if (task.status === 'completada' || !task.dueDate) return task;
-          const diff = new Date(task.dueDate).getTime() - Date.now();
+      const { data: tasks } = await supabase
+        .from('tasks')
+        .select('id, title, status, due_date, due_time, notified_30min, notified_overdue')
+        .neq('status', 'completada')
+        .not('due_date', 'is', null);
 
-          if (diff < 0 && !task.notifiedOverdue) {
-            new Notification('Tarea vencida', {
-              body: task.title,
-              tag: `overdue-${task.id}`,
-            });
-            changed = true;
-            return { ...task, notifiedOverdue: true };
-          }
+      if (!tasks) return;
 
-          if (diff > 0 && diff <= 30 * 60 * 1000 && !task.notified30min) {
-            new Notification('Tarea vence en 30 minutos', {
-              body: task.title,
-              tag: `soon-${task.id}`,
-            });
-            changed = true;
-            return { ...task, notified30min: true };
-          }
+      for (const task of tasks) {
+        const dueDate = task.due_time
+          ? `${task.due_date}T${task.due_time}`
+          : `${task.due_date}T00:00:00`;
+        const diff = new Date(dueDate).getTime() - Date.now();
 
-          return task;
-        });
-
-        if (changed) localStorage.setItem('aios-tareas', JSON.stringify(updated));
-      } catch {}
+        if (diff < 0 && !task.notified_overdue) {
+          new Notification('Tarea vencida', { body: task.title, tag: `overdue-${task.id}` });
+          await supabase.from('tasks').update({ notified_overdue: true }).eq('id', task.id);
+        } else if (diff > 0 && diff <= 30 * 60 * 1000 && !task.notified_30min) {
+          new Notification('Tarea vence en 30 minutos', { body: task.title, tag: `soon-${task.id}` });
+          await supabase.from('tasks').update({ notified_30min: true }).eq('id', task.id);
+        }
+      }
     }
 
     checkNotifications();
